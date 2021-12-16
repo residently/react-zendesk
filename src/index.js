@@ -20,6 +20,7 @@ export default class Zendesk extends Component {
 
     constructor(props) {
         super(props)
+        this.scriptElement = null;
         this.insertScript = this.insertScript.bind(this)
         this.onScriptLoaded = this.onScriptLoaded.bind(this)
       }
@@ -40,13 +41,13 @@ export default class Zendesk extends Component {
         script.id = 'ze-snippet'
         script.src = `https://static.zdassets.com/ekr/snippet.js?key=${zendeskKey}`
         script.addEventListener('load', this.onScriptLoaded);
-        document.body.appendChild(script)
+        return document.body.appendChild(script);
       }
 
       componentDidMount() {
         if (canUseDOM && !window.zE) {
           const {defer, zendeskKey, ...other} = this.props
-          this.insertScript(zendeskKey, defer)
+          this.scriptElement = this.insertScript(zendeskKey, defer)
           window.zESettings = other
         }
       }
@@ -54,6 +55,10 @@ export default class Zendesk extends Component {
       componentWillUnmount(){
         if (!canUseDOM || !window.zE) {
             return
+        }
+        if (this.scriptElement) {
+          this.scriptElement.removeEventListener('load', this.onScriptLoaded);
+          this.scriptElement.remove();
         }
         delete window.zE
         delete window.zESettings
